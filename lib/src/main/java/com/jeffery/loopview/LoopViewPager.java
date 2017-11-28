@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -42,6 +43,8 @@ public class LoopViewPager extends FrameLayout {
     private int postTime = 3000;
     private boolean isAutoStart = false;
     private CircleIndicator.Gravity mGravity = CircleIndicator.Gravity.CENTER;
+    private int mPointBgColorIds;
+    private int mPointSelectColorIds;
 
     public LoopViewPager(@NonNull Context context) {
         this(context, null);
@@ -78,7 +81,13 @@ public class LoopViewPager extends FrameLayout {
         mViewPager.setLayoutParams(new LayoutParams(width, height));
     }
 
-    public void setUrls(final List<String> urls) {
+    public void setPointColor(int select, int bg) {
+        mPointBgColorIds = bg;
+        mPointSelectColorIds = select;
+    }
+
+
+    public void setImages(final List urls) throws Exception {
         mSize = urls.size();
         if (mViewPager != null) {
             makeView(urls);
@@ -105,22 +114,48 @@ public class LoopViewPager extends FrameLayout {
     }
 
 
-    private void makeView(List<String> urls) {
+    private void makeView(List urls) throws Exception {
         if (mViewList == null) {
             mViewList = new ArrayList<>();
         }
         List<ImageView> imageList = new ArrayList<>();
         int size = urls.size();
         if (size >= 2) {
-            String lastUrl = urls.get(size - 1);
+            String lastUrl = "";
+            int lastIds = 0;
+            Object obj = urls.get(size - 1);
+            if (obj instanceof String) {
+                lastUrl = (String) obj;
+            } else if (obj instanceof Integer) {
+                lastIds = (int) obj;
+            } else {
+                throw new Exception("error object");
+            }
+
+
             ImageView realFirstImg = new ImageView(getContext());
             realFirstImg.setLayoutParams(new LayoutParams(mWidth, mHeight));
             realFirstImg.setScaleType(ImageView.ScaleType.FIT_XY);
-            Picasso.with(getContext()).load(lastUrl).resize(mWidth, mHeight).into(realFirstImg);
+            if (TextUtils.isEmpty(lastUrl)) {
+                Picasso.with(getContext()).load(lastIds).resize(mWidth, mHeight).into(realFirstImg);
+            } else {
+                Picasso.with(getContext()).load(lastUrl).resize(mWidth, mHeight).into(realFirstImg);
+            }
             imageList.add(realFirstImg);
         }
         for (int i = 0; i < size; i++) {
-            String url = urls.get(i);
+            String url = "";
+            int ids = 0;
+            Object obj = urls.get(i);
+
+            if (obj instanceof String) {
+                url = (String) obj;
+            } else if (obj instanceof Integer) {
+                ids = (int) obj;
+            } else {
+                throw new Exception("error object");
+            }
+
             ImageView img = new ImageView(getContext());
             img.setLayoutParams(new LayoutParams(mWidth, mHeight));
             img.setScaleType(ImageView.ScaleType.FIT_XY);
@@ -131,15 +166,34 @@ public class LoopViewPager extends FrameLayout {
                     mItemClickListener.onItemClick(mViewPager, v, finalI);
                 }
             });
-            Picasso.with(getContext()).load(url).resize(mWidth, mHeight).into(img);
+            if (TextUtils.isEmpty(url)) {
+                Picasso.with(getContext()).load(ids).resize(mWidth, mHeight).into(img);
+            } else {
+                Picasso.with(getContext()).load(url).resize(mWidth, mHeight).into(img);
+            }
             imageList.add(img);
         }
         if (size >= 2) {
-            String firstUrl = urls.get(0);
+            String url = "";
+            int ids = 0;
+            Object obj = urls.get(0);
+
+            if (obj instanceof String) {
+                url = (String) obj;
+            } else if (obj instanceof Integer) {
+                ids = (int) obj;
+            } else {
+                throw new Exception("error object");
+            }
+
             ImageView realLastImg = new ImageView(getContext());
             realLastImg.setLayoutParams(new LayoutParams(mWidth, mHeight));
             realLastImg.setScaleType(ImageView.ScaleType.FIT_XY);
-            Picasso.with(getContext()).load(firstUrl).resize(mWidth, mHeight).into(realLastImg);
+            if (TextUtils.isEmpty(url)) {
+                Picasso.with(getContext()).load(ids).resize(mWidth, mHeight).into(realLastImg);
+            } else {
+                Picasso.with(getContext()).load(url).resize(mWidth, mHeight).into(realLastImg);
+            }
             imageList.add(realLastImg);
         }
         for (int i = 0; i < imageList.size(); i++) {
@@ -148,7 +202,6 @@ public class LoopViewPager extends FrameLayout {
             frameLayout.addView(imageList.get(i));
             mViewList.add(frameLayout);
         }
-
     }
 
     public void setOnPagerChangListener(ViewPager.OnPageChangeListener listener) {
@@ -174,7 +227,7 @@ public class LoopViewPager extends FrameLayout {
             this.mGravity = gravity;
         }
         if (mSize == 0) {
-            throw new IllegalStateException("you must call the method \"setUrls\" first");
+            throw new IllegalStateException("you must call the method \"setImages\" first");
         }
         makePoint(mSize);
     }
@@ -190,8 +243,8 @@ public class LoopViewPager extends FrameLayout {
         mCircleIndicator.setLayoutParams(params);
         mCircleIndicator.setIndicatorRadius(SizeUtils.dp2px(4, getContext()));//圆的大小
         mCircleIndicator.setIndicatorMargin(SizeUtils.dp2px(7, getContext()));//间隔
-        mCircleIndicator.setIndicatorBackground(Color.parseColor("#d4bebcbc"));
-        mCircleIndicator.setIndicatorSelectedBackground(Color.parseColor("#e6ffffff"));
+        mCircleIndicator.setIndicatorBackground(mPointBgColorIds);
+        mCircleIndicator.setIndicatorSelectedBackground(mPointSelectColorIds);
         mCircleIndicator.setIndicatorLayoutGravity(mGravity);
         mCircleIndicator.setIndicatorMode(CircleIndicator.Mode.OUTSIDE);
         mCircleIndicator.setViewPager(mViewPager, count);
@@ -210,7 +263,7 @@ public class LoopViewPager extends FrameLayout {
 
     public void setTextLayout(String[] strings) {
         if (mViewList == null || mViewList.size() == 0) {
-            throw new IllegalStateException("you must call the method \"setUrls\" first");
+            throw new IllegalStateException("you must call the method \"setImages\" first");
         }
         if (strings.length < mSize) {
             throw new IllegalStateException("too sort!");
