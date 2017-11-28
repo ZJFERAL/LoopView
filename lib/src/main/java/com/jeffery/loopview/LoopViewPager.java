@@ -43,8 +43,8 @@ public class LoopViewPager extends FrameLayout {
     private int postTime = 3000;
     private boolean isAutoStart = false;
     private CircleIndicator.Gravity mGravity = CircleIndicator.Gravity.CENTER;
-    private int mPointBgColorIds;
-    private int mPointSelectColorIds;
+    private int mPointBgColorIds = 0;
+    private int mPointSelectColorIds = 0;
 
     public LoopViewPager(@NonNull Context context) {
         this(context, null);
@@ -163,7 +163,9 @@ public class LoopViewPager extends FrameLayout {
             img.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mItemClickListener.onItemClick(mViewPager, v, finalI);
+                    if(mItemClickListener!=null){
+                        mItemClickListener.onItemClick(mViewPager, v, finalI);
+                    }
                 }
             });
             if (TextUtils.isEmpty(url)) {
@@ -243,8 +245,8 @@ public class LoopViewPager extends FrameLayout {
         mCircleIndicator.setLayoutParams(params);
         mCircleIndicator.setIndicatorRadius(SizeUtils.dp2px(4, getContext()));//圆的大小
         mCircleIndicator.setIndicatorMargin(SizeUtils.dp2px(7, getContext()));//间隔
-        mCircleIndicator.setIndicatorBackground(mPointBgColorIds);
-        mCircleIndicator.setIndicatorSelectedBackground(mPointSelectColorIds);
+        mCircleIndicator.setIndicatorBackground(mPointBgColorIds==0?Color.parseColor("#e6ffffff"):mPointBgColorIds);
+        mCircleIndicator.setIndicatorSelectedBackground(mPointSelectColorIds==0?Color.parseColor("#40939191"):mPointSelectColorIds);
         mCircleIndicator.setIndicatorLayoutGravity(mGravity);
         mCircleIndicator.setIndicatorMode(CircleIndicator.Mode.OUTSIDE);
         mCircleIndicator.setViewPager(mViewPager, count);
